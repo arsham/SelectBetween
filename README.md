@@ -1,6 +1,6 @@
 # InBetween
 
-A sublime text plugin to select an area surrounded by a character at position
+A sublime text plugin in between of good and evil!
 
 ## Motivation
 
@@ -8,8 +8,7 @@ This is not an attempt to reinvent vim. This is my take to make it easy to use t
 
 ## Features
 
-* Can select between any characters in a line
-* Can work on multiple selection
+* Can select between any characters in a line. Also works on multiple selections.
 
 ## Installation
 

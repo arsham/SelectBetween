@@ -5,8 +5,11 @@ import sublime_plugin
 
 class InBetweenListener(sublime_plugin.EventListener):
 
+    SELECT_MODE = 0
     invoked = False
     in_plugin = False
+    dirty_file = True
+    mode = None
 
     def on_modified(self, view):
 
@@ -22,8 +25,15 @@ class InBetweenListener(sublime_plugin.EventListener):
             return
 
         self.in_plugin = True
-        last_char = self.remove_last(view)
 
+        last_char = self.remove_last(view)
+        if not self.is_dirty:
+            view.run_command("save")
+
+        if self.mode == InBetweenListener.SELECT_MODE:
+            self._select(view, last_char)
+
+    def _select(self, view, last_char):
         for sel in view.sel():
             line = view.line(sel)
             line_left = Region(line.a, sel.a)
@@ -34,6 +44,10 @@ class InBetweenListener(sublime_plugin.EventListener):
             right_found_pos = from_sel.find(last_char)
             to_select_reg = Region(
                 left_found_pos + line.a + 1, right_found_pos + sel.a)
+
+            if view.substr(to_select_reg.a).isspace():
+                # This means it didn't match anything.
+                return
 
             if to_select_reg.a <= sel.b and to_select_reg.b >= sel.a:
                 view.sel().add(to_select_reg)
@@ -56,7 +70,13 @@ class InBetweenListener(sublime_plugin.EventListener):
 
 class InBetweenCommand(sublime_plugin.TextCommand):
 
-    def run(self, edit):
+    def run(self, edit, mode=None):
+        if mode == "select":
+            InBetweenListener.mode = InBetweenListener.SELECT_MODE
+        else:
+            # mode is not recognised
+            return
+        InBetweenListener.is_dirty = self.view.is_dirty()
         InBetweenListener.invoked = not InBetweenListener.invoked
 
 
