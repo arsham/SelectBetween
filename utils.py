@@ -7,32 +7,26 @@ from sublime import Region
 
 class Constants:
 
-    command_name = "in_between"
-
-    SELECT_MODE = "select"
-    NEXT_MODE = "next"
-    BACK_MODE = "back"
-    MODES = (SELECT_MODE, NEXT_MODE, BACK_MODE)
-
-    RIGHT = 1
-    LEFT = -1
+    BRACKETS = {
+        "[": "]",
+        "(": ")",
+        "{": "}",
+        "<": ">",
+    }
 
 
 class State:
     """
-    Defines the current state of the plug-in
+    Defines the current state of the plug-in.
+    An object of this class the only source of the truth.
     """
     invoked = False
     in_plugin = False
-    in_repeat = False
-    dirty_file = True
-    mode = None
     select = False
 
     def reset(self):
         self.invoked = False
         self.in_plugin = False
-        self.in_repeat = False
 
 
 state_object = None
@@ -53,23 +47,30 @@ def remove_last(view):
     region = Region(position, position - 1)
     character = view.substr(region)
     view.run_command("left_delete")
-    # undoing twice to remove the character and also retain the view's dirty state
+    # undoing twice to remove the character and also retain the view's dirty state.
     view.run_command("undo")
     view.run_command("undo")
 
     return character
 
 
-def select(view, last_char):
+def select(view, character):
+    """
+    selects the region around current position between both occurrences of the `character`
+    """
+    chars = get_char_pairs(character)
     for sel in view.sel():
         current_line = view.line(sel)
         left_portion = Region(current_line.a, sel.a)
         right_portion = Region(sel.b, current_line.b)
 
+        # the left and right portion of the text to inspect.
         to_sel = view.substr(left_portion)
         from_sel = view.substr(right_portion)
-        found_left_pos = to_sel.rfind(last_char)
-        found_right_pos = from_sel.find(last_char)
+
+        found_left_pos = to_sel.rfind(chars[0])
+        found_right_pos = from_sel.find(chars[1])
+
         to_select_reg = Region(found_left_pos + current_line.a + 1, found_right_pos + sel.a)
 
         if view.substr(to_select_reg.a).isspace():
@@ -81,76 +82,21 @@ def select(view, last_char):
             view.sel().add(to_select_reg)
 
 
-def to_next(view, last_char):
-    return _find(view, last_char, Constants.RIGHT)
+def get_char_pairs(character):
+    """
+    If the character is a bracket, it returns the beginning and ending
+    parts. Otherwise it returns the character as both items.
+    If the user presses the ending, it swaps the position.
+    :rtype: tuple
+    """
+    if character in Constants.BRACKETS.keys():
+        chars = (character, Constants.BRACKETS[character])
 
+    elif character in Constants.BRACKETS.values():
+        # the user pressed the closing part of the character
+        char = {v: k for k, v in Constants.BRACKETS.items()}[character]
+        chars = (char, character)
 
-def to_back(view, last_char):
-    return _find(view, last_char, Constants.LEFT)
-
-
-def _find(view, last_char, direction):
-    lines = {}  # selection of the cursor to line
-    for sel in view.sel():
-        a = min(sel.a, sel.b)
-        b = max(sel.a, sel.b)
-
-        # in case of going right, the current position is checked
-        cell_check = 0
-        if direction == Constants.LEFT:
-            # otherwise the previous one
-            cell_check = -1
-
-        if a == b and view.substr(a + cell_check) == last_char:
-            #  to move over the character if is the last_char already and look for the next
-            a += direction
-            b += direction
-            sel = Region(a, b)
-        lines[(a, b)] = view.line(sel)
-
-    regions = []
-    for sel, line in lines.items():
-        regions.append(_get_found_regions(view, last_char, sel, line, direction))
-
-    if regions:
-        # because we don't want to clear the selection if there is no region
-        view.sel().clear()
-        for region in regions:
-            view.sel().add(region)
-
-    current_state().reset()
-
-
-def _get_found_regions(view, last_char, sel, line, direction):
-    if direction == Constants.RIGHT:
-        line_portion = Region(sel[0], line.b)
     else:
-        line_portion = Region(line.a, sel[1])
-
-    from_sel = view.substr(line_portion)
-
-    if direction == Constants.RIGHT:
-        found_pos = from_sel.find(last_char)
-    else:
-        found_pos = from_sel.rfind(last_char)
-
-    if found_pos > 0:
-        # otherwise we didn't find anything
-        if current_state().select:
-            if direction == Constants.RIGHT:
-                a = sel[0]
-                b = sel[0] + found_pos
-            else:
-                a = line.a + found_pos
-                b = sel[1]
-        else:
-            if direction == Constants.RIGHT:
-                a = b = sel[0] + found_pos
-            else:
-                a = b = line.a + found_pos
-
-        return Region(a, b)
-
-    # for clearing only the region that can be advanced, we need to
-    # push back the current selection
-    return Region(sel[0], sel[1])
+        chars = (character, character)
+    return chars
