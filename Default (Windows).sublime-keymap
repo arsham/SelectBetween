@@ -1,3 +1,5 @@
 [
     { "keys": ["alt+s", "alt+i"], "command": "in_between", "args": {"mode": "select"} },
+    { "keys": ["alt+t"], "command": "in_between", "args": {"mode": "next"} },
+
 ]
