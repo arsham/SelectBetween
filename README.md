@@ -1,6 +1,6 @@
 # InBetween
 
-A sublime text plugin in between of good and evil!
+A Sublime Text 3 plug-in in between good and evil!
 
 ## Motivation
 
@@ -8,11 +8,13 @@ This is not an attempt to reinvent vim. This is my take to make it easy to use t
 
 ## Features
 
-* Can select between any characters in a line. Also works on multiple selections.
+* Can select between any characters in a line.
+* Go to next/previous character.
+* Features are designed to work with multi-cursor selections.
 
 ## Installation
 
-For the time being, I am developing this plugin and have not published it to the repository. You need to clone this repository in
+For the time being, I am developing this plug in and have not published it to the repository. You need to clone this repository in
 ```bash
 ~/.config/sublime-text-3/Packages
 ```
@@ -21,12 +23,12 @@ No restart is needed.
 
 ## Usage
 
-The hot key is "alt+s,alt+i,CHARACTER". You can update the key bindings by adding this to your key bindings:
+These are the key bindings set in this plug-in:
 
 ```javascript
-{ "keys": ["alt+s", "alt+i"], "command": "in_between" }
+{ "keys": ["alt+s", "alt+i"], "command": "in_between", "args": {"mode": "select"} },
+{ "keys": ["alt+t"], "command": "in_between", "args": {"mode": "next"} },
+{ "keys": ["alt+r"], "command": "in_between", "args": {"mode": "back"} },
+{ "keys": ["shift+alt+t"], "command": "in_between", "args": {"mode": "next", "select": true} },
+{ "keys": ["shift+alt+r"], "command": "in_between", "args": {"mode": "back", "select": true} },
 ```
-
-## Known Issues
-
-When you attempt to invoke the command on an already selected region, it replaces it.

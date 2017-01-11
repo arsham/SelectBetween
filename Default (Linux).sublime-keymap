@@ -1,5 +1,7 @@
 [
     { "keys": ["alt+s", "alt+i"], "command": "in_between", "args": {"mode": "select"} },
     { "keys": ["alt+t"], "command": "in_between", "args": {"mode": "next"} },
-	// { "keys": ["alt+r"], "command": "in_between", "args": {"mode": "repeat"} },
+    { "keys": ["alt+r"], "command": "in_between", "args": {"mode": "back"} },
+    { "keys": ["shift+alt+t"], "command": "in_between", "args": {"mode": "next", "select": true} },
+    { "keys": ["shift+alt+r"], "command": "in_between", "args": {"mode": "back", "select": true} },
 ]
