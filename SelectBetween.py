@@ -21,6 +21,8 @@ class SelectBetweenListener(sublime_plugin.EventListener):
     def on_text_command(self, view, command, args):
         if command != "select_between":
             # we don't want to intercept other activities
+            # we also want to reset in case the plug-in was in active state
+            current_state().reset()
             return
 
     def on_modified(self, view):
