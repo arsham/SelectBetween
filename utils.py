@@ -73,7 +73,7 @@ def select(view, character):
 
         to_select_reg = Region(found_left_pos + current_line.a + 1, found_right_pos + sel.a)
 
-        if view.substr(to_select_reg.a).isspace():
+        if view.substr(to_select_reg.a).isspace() or (to_select_reg.a == current_line.a and view.substr(to_select_reg.a) != character):
             # This means it didn't match anything.
             current_state().reset()
             return
